@@ -1,4 +1,4 @@
-import { Settings, Database } from "lucide-react";
+import { Settings, Database, Table2 } from "lucide-react";
 
 export const configItems = [
   {
@@ -12,5 +12,11 @@ export const configItems = [
     icon: Database,
     path: "/data-setup",
     description: "Configuración del almacenamiento de datos y archivos del sistema"
+  },
+  {
+    title: "Configuración de Tablas",
+    icon: Table2,
+    path: "/tables-setup",
+    description: "Configuración de tablas para clasificación de activos"
   }
 ];

@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Dashboard from "./pages/Index";
 import Setup from "./pages/Setup";
 import DataSetup from "./pages/DataSetup";
+import TablesSetup from "./pages/TablesSetup";
 import WorkOrdersPage from "./pages/work-orders";
 import { useEffect, useState } from "react";
 
@@ -45,6 +46,7 @@ const App = () => {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/setup" element={<Setup />} />
                   <Route path="/data-setup" element={<DataSetup />} />
+                  <Route path="/tables-setup" element={<TablesSetup />} />
                   <Route path="/work-orders" element={<WorkOrdersPage />} />
                 </Routes>
               </main>
