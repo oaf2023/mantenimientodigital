@@ -28,22 +28,22 @@ export function TaskList({
     <Tooltip>
       <TooltipTrigger asChild>
         <Card>
-          <CardHeader>
-            <CardTitle>{title}</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">{title}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {tasks.map((task) => (
-                <div key={task.title} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <span>{task.title}</span>
+                <div key={task.title} className="flex items-center justify-between p-1.5 bg-gray-50 rounded text-sm">
+                  <span className="text-sm">{task.title}</span>
                   {showStatus ? (
-                    <span className="px-2 py-1 text-xs bg-accent text-white rounded">
+                    <span className="px-2 py-0.5 text-xs bg-accent text-white rounded">
                       {task.status || 'Atención'}
                     </span>
                   ) : (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm">Ver Detalles</Button>
+                        <Button variant="outline" size="sm" className="text-xs py-1 h-7">Ver Detalles</Button>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Ver detalles completos de esta tarea</p>
