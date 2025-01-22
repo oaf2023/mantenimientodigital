@@ -13,27 +13,36 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { FieldAlert } from "./FieldAlert";
 import { MeetingAlert } from "./MeetingAlert";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const menuItems = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
     path: "/",
+    description: "Panel principal con indicadores y estadísticas del sistema"
   },
   {
     title: "Activos",
     icon: Box,
     path: "/assets",
+    description: "Gestión de equipos y recursos de la empresa"
   },
   {
     title: "Órdenes de Trabajo",
     icon: ClipboardList,
     path: "/work-orders",
+    description: "Administración de órdenes de trabajo y mantenimientos"
   },
   {
     title: "Mantenimiento",
     icon: Wrench,
     path: "/maintenance",
+    description: "Planificación y seguimiento de mantenimientos preventivos"
   },
 ];
 
@@ -73,31 +82,52 @@ export function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link to={item.path} className="flex items-center gap-2">
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton asChild>
+                        <Link to={item.path} className="flex items-center gap-2">
+                          <item.icon className="h-5 w-5" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{item.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </SidebarMenuItem>
               ))}
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  onClick={() => setFieldAlertOpen(true)}
-                  className="bg-green-100 hover:bg-green-200 text-green-800"
-                >
-                  <Camera className="h-5 w-5" />
-                  <span>En Campo</span>
-                </SidebarMenuButton>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton 
+                      onClick={() => setFieldAlertOpen(true)}
+                      className="bg-green-100 hover:bg-green-200 text-green-800"
+                    >
+                      <Camera className="h-5 w-5" />
+                      <span>En Campo</span>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Captura fotos y videos en campo para reportar incidencias</p>
+                  </TooltipContent>
+                </Tooltip>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  onClick={() => setMeetingAlertOpen(true)}
-                  className="bg-blue-100 hover:bg-blue-200 text-blue-800"
-                >
-                  <Video className="h-5 w-5" />
-                  <span>Reunión</span>
-                </SidebarMenuButton>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton 
+                      onClick={() => setMeetingAlertOpen(true)}
+                      className="bg-blue-100 hover:bg-blue-200 text-blue-800"
+                    >
+                      <Video className="h-5 w-5" />
+                      <span>Reunión</span>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Inicia una videollamada con tu equipo de trabajo</p>
+                  </TooltipContent>
+                </Tooltip>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
