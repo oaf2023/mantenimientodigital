@@ -1,4 +1,4 @@
-import { Collection, Document, ObjectId, WithId } from 'mongodb';
+import { Collection, Document, ObjectId, WithId, OptionalUnlessRequiredId } from 'mongodb';
 import { mongoClient } from '@/lib/mongodb';
 
 export interface BaseDocument extends Document {
@@ -35,7 +35,7 @@ export class BaseService<T extends BaseDocument> {
       ...data,
       createdAt: now,
       updatedAt: now,
-    } as T;
+    } as OptionalUnlessRequiredId<T>;
     
     const result = await this.collection.insertOne(documentToInsert);
     return {
