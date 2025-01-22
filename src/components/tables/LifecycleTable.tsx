@@ -33,7 +33,7 @@ export function LifecycleTable() {
       title="Ciclo de Vida"
       items={lifecycles}
       onAdd={handleAdd}
-      onEdit={handleDelete}
+      onEdit={handleEdit}
       onDelete={handleDelete}
     />
   );
