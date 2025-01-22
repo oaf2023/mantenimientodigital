@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Activity, Clock, CheckCircle2, DollarSign } from "lucide-react";
+import { AlertCircle, Activity, Clock, CheckCircle2, DollarSign, Users } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { TaskList } from "@/components/dashboard/TaskList";
 import { StatisticsCard } from "@/components/dashboard/StatisticsCard";
@@ -18,10 +18,10 @@ const Dashboard = () => {
   ];
 
   const pendingTasks = [
-    "Revisión Bomba #123",
-    "Calibración Sensor PT100",
-    "Lubricación Cinta #2"
-  ].map(title => ({ title }));
+    { title: "OT-2024-001: Revisión Bomba #123" },
+    { title: "OT-2024-002: Calibración Sensor PT100" },
+    { title: "OT-2024-003: Lubricación Cinta #2" }
+  ];
 
   const criticalEquipment = [
     "Bomba Centrífuga #2",
@@ -35,7 +35,7 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold">Dashboard</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-5 mb-6">
         <StatCard
           title="Órdenes Activas"
           value={12}
@@ -60,6 +60,13 @@ const Dashboard = () => {
           value="$2,450"
           Icon={DollarSign}
           description="Costo promedio por reparación realizada"
+        />
+        <StatCard
+          title="Personal por Orden"
+          value="3.5"
+          Icon={Users}
+          iconClassName="text-blue-500"
+          description="Cantidad media de personal asignado por orden de trabajo"
         />
       </div>
 
