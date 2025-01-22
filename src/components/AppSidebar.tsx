@@ -8,10 +8,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Wrench, Box, ClipboardList, Camera } from "lucide-react";
+import { LayoutDashboard, Wrench, Box, ClipboardList, Camera, Video } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { FieldAlert } from "./FieldAlert";
+import { MeetingAlert } from "./MeetingAlert";
 
 const menuItems = [
   {
@@ -39,6 +40,7 @@ const menuItems = [
 export function AppSidebar() {
   const [companyData, setCompanyData] = useState<{ name: string; logo: string }>({ name: "", logo: "" });
   const [fieldAlertOpen, setFieldAlertOpen] = useState(false);
+  const [meetingAlertOpen, setMeetingAlertOpen] = useState(false);
 
   useEffect(() => {
     const storedData = localStorage.getItem('companyData');
@@ -88,6 +90,15 @@ export function AppSidebar() {
                   <span>En Campo</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => setMeetingAlertOpen(true)}
+                  className="bg-blue-100 hover:bg-blue-200 text-blue-800"
+                >
+                  <Video className="h-5 w-5" />
+                  <span>Reunión</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -97,6 +108,7 @@ export function AppSidebar() {
         <p>Todos los derechos reservados ®</p>
       </div>
       <FieldAlert open={fieldAlertOpen} onOpenChange={setFieldAlertOpen} />
+      <MeetingAlert open={meetingAlertOpen} onOpenChange={setMeetingAlertOpen} />
     </Sidebar>
   );
 }
