@@ -55,16 +55,16 @@ export function TaskList({
       <Tooltip>
         <TooltipTrigger asChild>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{title}</CardTitle>
+            <CardHeader className="pb-1">
+              <CardTitle className="text-base">{title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {tasks.map((task) => (
-                  <div key={task.title} className="flex items-center justify-between p-1.5 bg-gray-50 rounded text-sm">
-                    <span className="text-sm">{formatOrderNumber(task)}</span>
+                  <div key={task.title} className="flex items-center justify-between p-1 bg-gray-50 rounded text-xs">
+                    <span>{formatOrderNumber(task)}</span>
                     {showStatus ? (
-                      <span className="px-2 py-0.5 text-xs bg-accent text-white rounded">
+                      <span className="px-1.5 py-0.5 text-xs bg-accent text-white rounded">
                         {task.status || 'Atención'}
                       </span>
                     ) : (
@@ -73,7 +73,7 @@ export function TaskList({
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="text-xs py-1 h-7"
+                            className="text-xs py-0.5 h-6 px-2"
                             onClick={() => {
                               setSelectedTask(task);
                               setIsDialogOpen(true);
@@ -128,6 +128,22 @@ export function TaskList({
                     <p className="text-sm">{selectedTask.orderDetails.assignedTo}</p>
                   </div>
                 )}
+                <div>
+                  <h4 className="font-semibold text-sm">Fecha</h4>
+                  <p className="text-sm">{selectedTask.orderDetails?.date}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm">Hora</h4>
+                  <p className="text-sm">{selectedTask.orderDetails?.time}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm">Área</h4>
+                  <p className="text-sm">{selectedTask.orderDetails?.area}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm">Tag</h4>
+                  <p className="text-sm">{selectedTask.orderDetails?.tag}</p>
+                </div>
               </div>
               {selectedTask.orderDetails?.description && (
                 <div>
