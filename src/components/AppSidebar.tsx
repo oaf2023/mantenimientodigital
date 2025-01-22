@@ -8,9 +8,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Wrench, Box, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Wrench, Box, ClipboardList, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { FieldAlert } from "./FieldAlert";
 
 const menuItems = [
   {
@@ -37,6 +38,7 @@ const menuItems = [
 
 export function AppSidebar() {
   const [companyData, setCompanyData] = useState<{ name: string; logo: string }>({ name: "", logo: "" });
+  const [fieldAlertOpen, setFieldAlertOpen] = useState(false);
 
   useEffect(() => {
     const storedData = localStorage.getItem('companyData');
@@ -77,6 +79,15 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => setFieldAlertOpen(true)}
+                  className="bg-green-100 hover:bg-green-200 text-green-800"
+                >
+                  <Camera className="h-5 w-5" />
+                  <span>En Campo</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -85,6 +96,7 @@ export function AppSidebar() {
         <p>© {currentYear} Manejadatos - Argentina</p>
         <p>Todos los derechos reservados ®</p>
       </div>
+      <FieldAlert open={fieldAlertOpen} onOpenChange={setFieldAlertOpen} />
     </Sidebar>
   );
 }
