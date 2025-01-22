@@ -4,55 +4,111 @@
 
 **URL**: https://lovable.dev/projects/233766bc-08fb-4ecb-bc56-c8454a403561
 
-## How can I edit this code?
+## Documentación Técnica
 
-There are several ways of editing your application.
+### Lenguajes y Tecnologías
+- **TypeScript/React**: Framework principal para el desarrollo frontend
+- **Tailwind CSS**: Framework de estilos
+- **Shadcn/ui**: Biblioteca de componentes UI
+- **React Query**: Gestión de estado y peticiones
+- **React Router**: Manejo de rutas
+- **Recharts**: Biblioteca para gráficos
+- **date-fns**: Manipulación de fechas
 
-**Use Lovable**
+### Componentes Principales
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/233766bc-08fb-4ecb-bc56-c8454a403561) and start prompting.
+#### Dashboard (src/pages/Index.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Página principal que muestra:
+  - Tarjeta de fecha/hora en tiempo real
+  - Estadísticas generales
+  - Lista de órdenes de trabajo pendientes
+  - Gráficos estadísticos
+  - Alertas del sistema
 
-Changes made via Lovable will be committed automatically to this repo.
+#### Órdenes de Trabajo (src/pages/work-orders/index.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Gestión de órdenes de trabajo
+  - Formato de OT: "DDMMYYYY_HHMM_AREA_TAG"
+  - Vista detallada de cada orden
+  - Formulario de creación/edición
 
-**Use your preferred IDE**
+#### Configuración (src/pages/Setup.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Configuración inicial del sistema
+  - Datos de la empresa
+  - Configuraciones generales
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+#### Configuración de Datos (src/pages/DataSetup.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Configuración de almacenamiento
+  - Gestión de datos
+  - Configuración de archivos
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+#### Configuración de Tablas (src/pages/TablesSetup.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Gestión de clasificación de activos
+  - Configuración de categorías
+  - Gestión de tablas de activos
 
-Follow these steps:
+### Componentes Reutilizables
+
+#### StatCard (src/components/dashboard/StatCard.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Tarjetas de estadísticas
+  - Muestra métricas individuales
+  - Iconos personalizables
+  - Descripción detallada
+
+#### TaskList (src/components/dashboard/TaskList.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Lista de tareas/órdenes
+  - Muestra órdenes pendientes
+  - Botón de ver detalles
+  - Información resumida
+
+#### StatisticsCard (src/components/dashboard/StatisticsCard.tsx)
+- **Lenguaje**: TypeScript/React
+- **Funcionalidad**: Gráficos estadísticos
+  - Datos semanales
+  - Datos mensuales
+  - Visualización mediante gráficos
+
+## Cómo editar este código
+
+Hay varias formas de editar tu aplicación.
+
+**Usar Lovable**
+
+Simplemente visita el [Proyecto Lovable](https://lovable.dev/projects/233766bc-08fb-4ecb-bc56-c8454a403561) y comienza a hacer prompts.
+
+Los cambios realizados a través de Lovable se confirmarán automáticamente en este repositorio.
+
+**Usar tu IDE preferido**
+
+Si deseas trabajar localmente usando tu propio IDE, puedes clonar este repositorio y enviar cambios. Los cambios enviados también se reflejarán en Lovable.
+
+El único requisito es tener Node.js y npm instalados - [instalar con nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Sigue estos pasos:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Paso 1: Clona el repositorio usando la URL Git del proyecto.
+git clone <TU_URL_GIT>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Paso 2: Navega al directorio del proyecto.
+cd <NOMBRE_DE_TU_PROYECTO>
 
-# Step 3: Install the necessary dependencies.
+# Paso 3: Instala las dependencias necesarias.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Paso 4: Inicia el servidor de desarrollo con recarga automática y vista previa instantánea.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Tecnologías utilizadas en este proyecto
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
+Este proyecto está construido con:
 
 - Vite
 - TypeScript
@@ -60,10 +116,10 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Cómo desplegar este proyecto
 
-Simply open [Lovable](https://lovable.dev/projects/233766bc-08fb-4ecb-bc56-c8454a403561) and click on Share -> Publish.
+Simplemente abre [Lovable](https://lovable.dev/projects/233766bc-08fb-4ecb-bc56-c8454a403561) y haz clic en Compartir -> Publicar.
 
-## I want to use a custom domain - is that possible?
+## ¿Puedo usar un dominio personalizado?
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+No admitimos dominios personalizados (aún). Si deseas implementar tu proyecto bajo tu propio dominio, te recomendamos usar Netlify. Visita nuestra documentación para más detalles: [Dominios personalizados](https://docs.lovable.dev/tips-tricks/custom-domain/)
