@@ -3,10 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { WorkOrderList } from "@/components/work-orders/WorkOrderList";
 import { WorkOrderForm } from "@/components/work-orders/WorkOrderForm";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
 
 export default function WorkOrdersPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const handleOrderComplete = () => {
+    setIsFormOpen(false);
+    toast({
+      title: "Orden de trabajo creada",
+      description: "La orden se ha guardado correctamente",
+    });
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -20,7 +36,13 @@ export default function WorkOrdersPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <WorkOrderForm onComplete={() => setIsFormOpen(false)} />
+            <DialogHeader>
+              <DialogTitle>Nueva Orden de Trabajo</DialogTitle>
+              <DialogDescription>
+                Complete los detalles de la nueva orden de trabajo
+              </DialogDescription>
+            </DialogHeader>
+            <WorkOrderForm onComplete={handleOrderComplete} />
           </DialogContent>
         </Dialog>
       </div>
