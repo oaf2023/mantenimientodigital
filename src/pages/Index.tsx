@@ -1,16 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Plus, Activity, Clock, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Plus, Activity, Clock, CheckCircle2, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Nueva Orden
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate("/setup")}>
+            <Settings className="mr-2 h-4 w-4" /> Configuración
+          </Button>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Nueva Orden
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3 mb-6">
