@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { WorkOrder } from "@/types/workOrder";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Upload, Video } from "lucide-react";
+import { MediaControls } from "@/components/field-alert/MediaControls";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 
@@ -46,40 +46,6 @@ export function WorkOrderForm({ onComplete, initialData }: WorkOrderFormProps) {
     }).replace(':', '');
     // Note: area and tag should be replaced with actual values from form
     return `${date}_${time}_01_TAG001`;
-  };
-
-  const handleCapture = async (type: 'photo' | 'video') => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: type === 'video'
-      });
-      
-      toast({
-        title: `Captura de ${type === 'photo' ? 'foto' : 'video'} iniciada`,
-        description: "Esta función estará disponible próximamente",
-      });
-      
-      stream.getTracks().forEach(track => track.stop());
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo acceder a la cámara",
-      });
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      setMediaFiles(prev => [...prev, ...Array.from(files)]);
-      toast({
-        title: "Archivos añadidos",
-        description: `${files.length} archivo(s) añadido(s)`,
-      });
-    }
   };
 
   const onSubmit = (data: WorkOrder) => {
@@ -257,35 +223,10 @@ export function WorkOrderForm({ onComplete, initialData }: WorkOrderFormProps) {
         />
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Button type="button" onClick={() => handleCapture('photo')}>
-              <Camera className="mr-2 h-4 w-4" />
-              Tomar Foto
-            </Button>
-            <Button type="button" onClick={() => handleCapture('video')}>
-              <Video className="mr-2 h-4 w-4" />
-              Grabar Video
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Button variant="outline" asChild>
-              <label>
-                <Upload className="mr-2 h-4 w-4" />
-                Subir Archivos
-                <input
-                  type="file"
-                  accept="image/*,video/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-              </label>
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {mediaFiles.length} archivo(s) seleccionado(s)
-            </span>
-          </div>
+          <MediaControls onFileUpload={(files) => setMediaFiles(prev => [...prev, ...files])} />
+          <span className="text-sm text-muted-foreground">
+            {mediaFiles.length} archivo(s) seleccionado(s)
+          </span>
         </div>
 
         <div className="flex justify-end space-x-4">
