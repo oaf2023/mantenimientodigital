@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Dashboard from "./pages/Index";
 import Setup from "./pages/Setup";
+import DataSetup from "./pages/DataSetup";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/setup" element={<Setup />} />
+                  <Route path="/data-setup" element={<DataSetup />} />
                 </Routes>
               </main>
             </div>

@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Wrench, Box, ClipboardList, Camera, Video } from "lucide-react";
+import { LayoutDashboard, Wrench, Box, ClipboardList, Camera, Video, Settings, Database } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { FieldAlert } from "./FieldAlert";
@@ -44,6 +44,21 @@ const menuItems = [
     path: "/maintenance",
     description: "Planificación y seguimiento de mantenimientos preventivos"
   },
+];
+
+const configItems = [
+  {
+    title: "Configuración",
+    icon: Settings,
+    path: "/setup",
+    description: "Configuración general de la empresa y el sistema"
+  },
+  {
+    title: "Configuración de Data",
+    icon: Database,
+    path: "/data-setup",
+    description: "Configuración del almacenamiento de datos y archivos del sistema"
+  }
 ];
 
 export function AppSidebar() {
@@ -129,6 +144,31 @@ export function AppSidebar() {
                   </TooltipContent>
                 </Tooltip>
               </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Configuración</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {configItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton asChild>
+                        <Link to={item.path} className="flex items-center gap-2">
+                          <item.icon className="h-5 w-5" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{item.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

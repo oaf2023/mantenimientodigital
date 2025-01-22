@@ -1,7 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Plus, Activity, Clock, CheckCircle2, Settings, DollarSign } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { AlertCircle, Plus, Activity, Clock, CheckCircle2, DollarSign } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { TaskList } from "@/components/dashboard/TaskList";
 import { StatisticsCard } from "@/components/dashboard/StatisticsCard";
@@ -12,8 +11,6 @@ import {
 } from "@/components/ui/tooltip";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-
   const weeklyData = [
     { name: 'Completadas', value: 35 },
     { name: 'Pendientes', value: 15 },
@@ -43,16 +40,6 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <div className="flex gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={() => navigate("/setup")}>
-                <Settings className="mr-2 h-4 w-4" /> Configuración
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Configurar datos de la empresa y preferencias del sistema</p>
-            </TooltipContent>
-          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button>
