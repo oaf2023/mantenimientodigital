@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wrench, Box, ClipboardList, Camera, Video } from "lucide-react";
+import { LayoutDashboard, Wrench, Box, ClipboardList, Camera, Video, Users } from "lucide-react";
 
 export const menuItems = [
   {
@@ -24,6 +24,12 @@ export const menuItems = [
     icon: Wrench,
     path: "/maintenance",
     description: "Planificación y seguimiento de mantenimientos preventivos"
+  },
+  {
+    title: "Equipo de Trabajo",
+    icon: Users,
+    path: "/teams",
+    description: "Gestión de equipos y grupos de trabajo"
   },
 ];
 
