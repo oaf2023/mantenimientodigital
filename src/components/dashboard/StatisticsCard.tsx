@@ -18,33 +18,33 @@ export function StatisticsCard({ weeklyData, monthlyData }: StatisticsCardProps)
   return (
     <UITooltip>
       <TooltipTrigger asChild>
-        <Card>
-          <CardHeader>
-            <CardTitle>Estadísticas</CardTitle>
+        <Card className="w-full">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-base">Estadísticas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2 md:grid-cols-2">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Órdenes Semanales</h3>
-                <ChartContainer className="h-[300px]" config={{}}>
+                <h3 className="text-sm font-semibold mb-2">Órdenes Semanales</h3>
+                <ChartContainer className="h-[200px]" config={{}}>
                   <BarChart data={weeklyData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="value" fill="#16A34A" />
                   </BarChart>
                 </ChartContainer>
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-4">Estado Mensual de Órdenes</h3>
-                <ChartContainer className="h-[300px]" config={{}}>
+                <h3 className="text-sm font-semibold mb-2">Estado Mensual de Órdenes</h3>
+                <ChartContainer className="h-[200px]" config={{}}>
                   <PieChart>
                     <Pie
                       data={monthlyData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius={80}
+                      outerRadius={60}
                       fill="#8884d8"
                       dataKey="value"
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
