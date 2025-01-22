@@ -1,14 +1,8 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Plus, Activity, Clock, CheckCircle2, DollarSign } from "lucide-react";
+import { AlertCircle, Activity, Clock, CheckCircle2, DollarSign } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { TaskList } from "@/components/dashboard/TaskList";
 import { StatisticsCard } from "@/components/dashboard/StatisticsCard";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 const Dashboard = () => {
   const weeklyData = [
@@ -39,18 +33,6 @@ const Dashboard = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="flex gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Nueva Orden
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Crear una nueva orden de trabajo</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4 mb-6">
