@@ -21,7 +21,11 @@ export class BaseService<T extends BaseDocument> {
   }
 
   private async ensureConnection() {
-    if (!this.client.topology || !this.client.topology.isConnected()) {
+    try {
+      // Verificamos si el cliente está conectado usando el método recomendado
+      await this.client.db("admin").command({ ping: 1 });
+    } catch (error) {
+      // Si no está conectado, intentamos conectar
       await this.client.connect();
       console.log("Connected to MongoDB");
     }
