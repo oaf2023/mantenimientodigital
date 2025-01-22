@@ -11,7 +11,7 @@ export interface WorkOrder {
   nombreEquipo: string;
   codigoEquipo: string;
   ubicacionEquipo: string;
-  ubicacionCentro: string;
+  ubicacionFisica: string;
   enAltura: boolean;
   detalles: string;
   fabricante: string;
