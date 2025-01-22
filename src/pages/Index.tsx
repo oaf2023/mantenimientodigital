@@ -3,8 +3,22 @@ import { AlertCircle, Activity, Clock, CheckCircle2, DollarSign, Users } from "l
 import { StatCard } from "@/components/dashboard/StatCard";
 import { TaskList } from "@/components/dashboard/TaskList";
 import { StatisticsCard } from "@/components/dashboard/StatisticsCard";
+import { Card } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const Dashboard = () => {
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const weeklyData = [
     { name: 'Completadas', value: 35 },
     { name: 'Pendientes', value: 15 },
@@ -67,8 +81,16 @@ const Dashboard = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-start mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
+        <Card className="p-3 text-sm shadow-md">
+          <div className="font-medium">
+            {format(currentDateTime, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}
+          </div>
+          <div className="text-lg font-bold text-secondary">
+            {format(currentDateTime, "HH:mm:ss")}
+          </div>
+        </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-5 mb-6">
