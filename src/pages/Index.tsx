@@ -5,6 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { TaskList } from "@/components/dashboard/TaskList";
 import { StatisticsCard } from "@/components/dashboard/StatisticsCard";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -38,12 +43,26 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <div className="flex gap-2">
-          <Button onClick={() => navigate("/setup")}>
-            <Settings className="mr-2 h-4 w-4" /> Configuración
-          </Button>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Nueva Orden
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => navigate("/setup")}>
+                <Settings className="mr-2 h-4 w-4" /> Configuración
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Configurar datos de la empresa y preferencias del sistema</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Nueva Orden
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Crear una nueva orden de trabajo</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -52,22 +71,26 @@ const Dashboard = () => {
           title="Órdenes Activas"
           value={12}
           Icon={Activity}
+          description="Número total de órdenes de trabajo actualmente en proceso"
         />
         <StatCard
           title="Tiempo Medio Reparación"
           value="2.5h"
           Icon={Clock}
           iconClassName="text-accent"
+          description="Tiempo promedio que toma completar una orden de trabajo"
         />
         <StatCard
           title="Completadas Hoy"
           value={8}
           Icon={CheckCircle2}
+          description="Cantidad de órdenes de trabajo completadas en el día"
         />
         <StatCard
           title="Costo Medio Reparación"
           value="$2,450"
           Icon={DollarSign}
+          description="Costo promedio por reparación realizada"
         />
       </div>
 
@@ -80,11 +103,23 @@ const Dashboard = () => {
       </Alert>
 
       <div className="grid gap-4 md:grid-cols-2 mb-6">
-        <TaskList title="Órdenes Pendientes" tasks={pendingTasks} />
-        <TaskList title="Equipos Críticos" tasks={criticalEquipment} showStatus />
+        <TaskList 
+          title="Órdenes Pendientes" 
+          tasks={pendingTasks} 
+          description="Lista de órdenes de trabajo que requieren atención"
+        />
+        <TaskList 
+          title="Equipos Críticos" 
+          tasks={criticalEquipment} 
+          showStatus 
+          description="Equipos que requieren atención prioritaria"
+        />
       </div>
 
-      <StatisticsCard weeklyData={weeklyData} monthlyData={monthlyData} />
+      <StatisticsCard 
+        weeklyData={weeklyData} 
+        monthlyData={monthlyData} 
+      />
     </div>
   );
 };
