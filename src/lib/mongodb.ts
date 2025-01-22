@@ -1,13 +1,37 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-
 class MongoDBClient {
   private static instance: MongoDBClient;
   private client: MongoClient;
+  private uri: string = 'mongodb://localhost:27017';
 
   private constructor() {
-    this.client = new MongoClient(uri, {
+    // Intentamos obtener la configuración guardada
+    const storageConfig = localStorage.getItem('storageConfig');
+    if (storageConfig) {
+      const { storageType, path } = JSON.parse(storageConfig);
+      
+      // Configuramos la URI de MongoDB según el tipo de almacenamiento
+      switch (storageType) {
+        case 'local':
+          this.uri = 'mongodb://localhost:27017';
+          break;
+        case 'server':
+          // Asumimos que el path contiene la dirección IP o hostname del servidor
+          this.uri = `mongodb://${path}:27017`;
+          break;
+        case 'cloud':
+          // Asumimos que el path contiene la URI completa de MongoDB Atlas
+          this.uri = path;
+          break;
+        default:
+          console.log('Usando configuración local por defecto');
+      }
+    }
+
+    console.log('Inicializando conexión MongoDB con URI:', this.uri);
+    
+    this.client = new MongoClient(this.uri, {
       serverApi: {
         version: ServerApiVersion.v1,
         strict: true,

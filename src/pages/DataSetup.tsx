@@ -3,20 +3,59 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { mongoClient } from "@/lib/mongodb";
 
 const DataSetup = () => {
   const { toast } = useToast();
   const [storageType, setStorageType] = useState("local");
   const [path, setPath] = useState("");
 
-  const handleSave = () => {
-    // Aquí se implementará la lógica para guardar la configuración
-    toast({
-      title: "Configuración guardada",
-      description: "La configuración de almacenamiento se ha actualizado correctamente",
-    });
+  useEffect(() => {
+    // Cargar configuración guardada
+    const savedConfig = localStorage.getItem('storageConfig');
+    if (savedConfig) {
+      const config = JSON.parse(savedConfig);
+      setStorageType(config.storageType);
+      setPath(config.path);
+    }
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      // Guardar configuración
+      const config = { storageType, path };
+      localStorage.setItem('storageConfig', JSON.stringify(config));
+
+      // Intentar conectar con MongoDB
+      await mongoClient.connect();
+      
+      toast({
+        title: "Configuración guardada",
+        description: "La conexión con MongoDB se ha establecido correctamente",
+      });
+    } catch (error) {
+      console.error("Error al conectar con MongoDB:", error);
+      toast({
+        title: "Error de conexión",
+        description: "No se pudo establecer la conexión con MongoDB. Verifique la configuración.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getPathPlaceholder = () => {
+    switch (storageType) {
+      case 'local':
+        return 'mongodb://localhost:27017';
+      case 'server':
+        return 'ejemplo: 192.168.1.100 o servidor.dominio.com';
+      case 'cloud':
+        return 'mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net';
+      default:
+        return '';
+    }
   };
 
   return (
@@ -36,18 +75,18 @@ const DataSetup = () => {
               <SelectContent>
                 <SelectItem value="local">Máquina Local</SelectItem>
                 <SelectItem value="server">Servidor</SelectItem>
-                <SelectItem value="cloud">Nube</SelectItem>
+                <SelectItem value="cloud">Nube (MongoDB Atlas)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="path">Directorio de Almacenamiento</Label>
+            <Label htmlFor="path">Conexión MongoDB</Label>
             <Input
               id="path"
               value={path}
               onChange={(e) => setPath(e.target.value)}
-              placeholder={storageType === 'local' ? 'C:/GMAO/data' : storageType === 'server' ? '\\\\servidor\\GMAO\\data' : 'bucket/GMAO/data'}
+              placeholder={getPathPlaceholder()}
             />
           </div>
 
