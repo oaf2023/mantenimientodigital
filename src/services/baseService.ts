@@ -1,4 +1,4 @@
-import { Collection, Document, ObjectId } from 'mongodb';
+import { Collection, Document, ObjectId, WithId } from 'mongodb';
 import { mongoClient } from '@/lib/mongodb';
 
 export interface BaseDocument extends Document {
@@ -18,22 +18,26 @@ export class BaseService<T extends BaseDocument> {
   }
 
   async findAll(): Promise<T[]> {
-    return await this.collection.find().toArray();
+    const documents = await this.collection.find().toArray();
+    return documents as T[];
   }
 
   async findById(id: string): Promise<T | null> {
-    return await this.collection.findOne({ _id: new ObjectId(id) });
+    const document = await this.collection.findOne({ 
+      _id: new ObjectId(id) 
+    } as any);
+    return document as T;
   }
 
-  async create(data: Omit<T, '_id'>): Promise<T> {
+  async create(data: Omit<T, '_id' | 'createdAt' | 'updatedAt'>): Promise<T> {
     const now = new Date();
     const documentToInsert = {
       ...data,
       createdAt: now,
       updatedAt: now,
-    };
+    } as T;
     
-    const result = await this.collection.insertOne(documentToInsert as T);
+    const result = await this.collection.insertOne(documentToInsert);
     return {
       ...documentToInsert,
       _id: result.insertedId,
@@ -42,7 +46,7 @@ export class BaseService<T extends BaseDocument> {
 
   async update(id: string, data: Partial<T>): Promise<T | null> {
     const result = await this.collection.findOneAndUpdate(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id) } as any,
       { 
         $set: {
           ...data,
@@ -51,11 +55,14 @@ export class BaseService<T extends BaseDocument> {
       },
       { returnDocument: 'after' }
     );
-    return result;
+    
+    return result as T;
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
+    const result = await this.collection.deleteOne({ 
+      _id: new ObjectId(id) 
+    } as any);
     return result.deletedCount === 1;
   }
 }
