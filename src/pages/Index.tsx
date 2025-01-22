@@ -18,16 +18,52 @@ const Dashboard = () => {
   ];
 
   const pendingTasks = [
-    { title: "OT-2024-001: Revisión Bomba #123" },
-    { title: "OT-2024-002: Calibración Sensor PT100" },
-    { title: "OT-2024-003: Lubricación Cinta #2" }
+    { 
+      title: "OT-001",
+      orderDetails: {
+        date: "15032024",
+        time: "1430",
+        area: "MANT",
+        tag: "BOM01",
+        equipment: "Bomba Centrífuga #123",
+        priority: "Alta",
+        description: "Revisión y mantenimiento preventivo de bomba centrífuga",
+        assignedTo: "Juan Pérez"
+      }
+    },
+    { 
+      title: "OT-002",
+      orderDetails: {
+        date: "15032024",
+        time: "1445",
+        area: "ELEC",
+        tag: "MOT02",
+        equipment: "Motor Principal #456",
+        priority: "Media",
+        description: "Calibración de sensor de temperatura",
+        assignedTo: "María González"
+      }
+    },
+    { 
+      title: "OT-003",
+      orderDetails: {
+        date: "15032024",
+        time: "1500",
+        area: "MEC",
+        tag: "CIN03",
+        equipment: "Cinta Transportadora #789",
+        priority: "Baja",
+        description: "Lubricación programada",
+        assignedTo: "Carlos Rodríguez"
+      }
+    }
   ];
 
   const criticalEquipment = [
-    "Bomba Centrífuga #2",
-    "Motor Principal",
-    "Compresor Industrial"
-  ].map(title => ({ title }));
+    { title: "Bomba Centrífuga #2" },
+    { title: "Motor Principal" },
+    { title: "Compresor Industrial" }
+  ];
 
   return (
     <div className="p-6">
