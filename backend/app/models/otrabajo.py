@@ -1,7 +1,7 @@
 from pydantic import BaseModel, validator
 from typing import Optional
 from datetime import datetime
-from app.database import db
+from app.databases import db
 
 class Otrabajo(BaseModel):
     numero_orden: Optional[str] = None
