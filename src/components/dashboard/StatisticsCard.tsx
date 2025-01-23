@@ -6,9 +6,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import OTIcon from "@/assets/ot.svg";  // Asegúrate de colocar el SVG en la carpeta correcta
+import OTIcon from "@/assets/ot.svg";
 import { RectangleProps } from "recharts";
-
 
 const COLORS = ['#16A34A', '#EA580C', '#EF4444', '#F59E0B'];
 
@@ -16,7 +15,7 @@ const CustomBar = (props: RectangleProps) => {
   const { x, y, width, height } = props;
   return (
     <image
-      href={OTIcon}  // Imagen SVG de la orden de trabajo
+      href={OTIcon}
       x={x}
       y={y}
       width={width}
@@ -25,14 +24,12 @@ const CustomBar = (props: RectangleProps) => {
   );
 };
 
-
 interface CustomBarProps {
   x?: number;
   y?: number;
   width?: number;
   height?: number;
 }
-
 
 interface StatisticsCardProps {
   weeklyData: Array<{ name: string; value: number}>;
@@ -64,7 +61,6 @@ export function StatisticsCard({ weeklyData, monthlyData }: StatisticsCardProps)
                     label={{ position: "top", fontSize: 10, fill: "#000" }}
                  />
                 </BarChart>
-
                 </ChartContainer>
               </div>
               <div>
