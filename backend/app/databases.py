@@ -1,8 +1,15 @@
-from motor.motor_asyncio import AsyncIOMotorClient
-from decouple import config
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from app.config import DATABASE_URL
 
-MONGO_URI = config("MONGO_URI", default="mongodb://localhost:27017")
-DB_NAME = config("DB_NAME", default="mantenimientodigital")
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-client = AsyncIOMotorClient(MONGO_URI)
-db = client[DB_NAME]
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
