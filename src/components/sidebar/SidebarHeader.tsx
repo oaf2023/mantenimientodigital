@@ -27,7 +27,7 @@ export const SidebarHeader = () => {
           className="w-8 h-8 object-contain"
         />
       )}
-      <span>{companyData.name || "GMAO System"}</span>
+      <span>{companyData.name || "Manejadatos"}</span>
     </SidebarGroupLabel>
   );
 };
