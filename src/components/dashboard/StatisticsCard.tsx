@@ -6,12 +6,37 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import OTIcon from "@/assets/ot.svg";  // Asegúrate de colocar el SVG en la carpeta correcta
+import { RectangleProps } from "recharts";
+
 
 const COLORS = ['#16A34A', '#EA580C', '#EF4444', '#F59E0B'];
 
+const CustomBar = (props: RectangleProps) => {
+  const { x, y, width, height } = props;
+  return (
+    <image
+      href={OTIcon}  // Imagen SVG de la orden de trabajo
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+    />
+  );
+};
+
+
+interface CustomBarProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+
+
 interface StatisticsCardProps {
-  weeklyData: Array<{ name: string; value: number }>;
-  monthlyData: Array<{ name: string; value: number }>;
+  weeklyData: Array<{ name: string; value: number}>;
+  monthlyData: Array<{ name: string; value: number}>;
 }
 
 export function StatisticsCard({ weeklyData, monthlyData }: StatisticsCardProps) {
@@ -27,12 +52,19 @@ export function StatisticsCard({ weeklyData, monthlyData }: StatisticsCardProps)
               <div>
                 <h3 className="text-sm font-semibold mb-2">Órdenes Semanales</h3>
                 <ChartContainer className="h-[200px]" config={{}}>
-                  <BarChart data={weeklyData}>
-                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" fill="#16A34A" />
-                  </BarChart>
+                <BarChart data={weeklyData}>
+                  <XAxis dataKey="name" tick={{ fontSize: 9 }} />
+                  <YAxis tick={{ fontSize: 9 }} />
+                  <Tooltip content={<ChartTooltipContent />} />
+                  <Bar 
+                    dataKey="value" 
+                    shape={({ x, y, width, height, payload }) => (
+                      <CustomBar x={x} y={y} width={width} height={height} fill={payload.color} />
+                    )}
+                    label={{ position: "top", fontSize: 10, fill: "#000" }}
+                 />
+                </BarChart>
+
                 </ChartContainer>
               </div>
               <div>
