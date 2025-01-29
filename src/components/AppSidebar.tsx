@@ -13,6 +13,7 @@ import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
 import { menuItems, actionItems } from "@/config/menuItems";
 import { configItems } from "@/config/configItems";
+import { DatabaseConfigButton } from "./DatabaseConfigButton";
 
 export function AppSidebar() {
   const [fieldAlertOpen, setFieldAlertOpen] = useState(false);
@@ -32,6 +33,9 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarHeader />
           <SidebarGroupContent>
+            <div className="flex items-center justify-between px-4 py-2">
+              <DatabaseConfigButton />
+            </div>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title} {...item} />
