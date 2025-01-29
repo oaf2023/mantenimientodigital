@@ -20,7 +20,8 @@ const TablesSetup = () => {
   const initializeDatabase = async () => {
     setIsInitializing(true);
     try {
-      const response = await axios.post('https://oaf.pythonanywhere.com/api/initialize-database', {
+      // Actualizada la URL para coincidir con el router del backend
+      const response = await axios.post('https://oaf.pythonanywhere.com/api/v1/initialize-database', {
         collections: [
           "otrabajo",
           "por_tipo_de_activo",
@@ -38,8 +39,10 @@ const TablesSetup = () => {
           description: "Las colecciones han sido creadas exitosamente.",
         });
         setIsInitialized(true);
+        console.log("Database initialized successfully:", response.data);
       }
     } catch (error) {
+      console.error("Error initializing database:", error);
       toast({
         title: "Error",
         description: "No se pudo inicializar la base de datos.",

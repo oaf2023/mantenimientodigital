@@ -8,17 +8,35 @@
 
 ### Lenguajes y Tecnologías
 - **TypeScript/React**: Framework principal para el desarrollo frontend
+- **Electron**: Framework para aplicaciones de escritorio
+- **MongoDB**: Base de datos NoSQL local
+- **FastAPI**: Backend en Python
 - **Tailwind CSS**: Framework de estilos
 - **Shadcn/ui**: Biblioteca de componentes UI
-- **React Query**: Gestión de estado y peticiones
-- **React Router**: Manejo de rutas
-- **Recharts**: Biblioteca para gráficos
-- **date-fns**: Manipulación de fechas
+
+### Estructura del Sistema
+
+#### Base de Datos
+- **MongoDB Local**:
+  - Ubicación: C:/mdigital/
+  - Base de datos: mantenimientodigital
+  - Colecciones principales:
+    - otrabajo
+    - por_tipo_de_activo
+    - por_funcionalidad
+    - por_importancia_critica
+    - por_ubicacion
+    - por_modo_de_mantenimiento_aplicable
+    - por_ciclo_de_vida_del_activo
+
+- **PythonAnywhere**:
+  - Archivos JSON:
+    - /home/oaf/mantenimiento/usuarios/usuarios.json
+    - /home/oaf/mantenimiento/datos/empresas.json
 
 ### Componentes Principales
 
 #### Dashboard (src/pages/Index.tsx)
-- **Lenguaje**: TypeScript/React
 - **Funcionalidad**: Página principal que muestra:
   - Tarjeta de fecha/hora en tiempo real
   - Estadísticas generales
@@ -26,100 +44,45 @@
   - Gráficos estadísticos
   - Alertas del sistema
 
-#### Órdenes de Trabajo (src/pages/work-orders/index.tsx)
-- **Lenguaje**: TypeScript/React
-- **Funcionalidad**: Gestión de órdenes de trabajo
-  - Formato de OT: "DDMMYYYY_HHMM_AREA_TAG"
-  - Vista detallada de cada orden
-  - Formulario de creación/edición
-
 #### Configuración (src/pages/Setup.tsx)
-- **Lenguaje**: TypeScript/React
 - **Funcionalidad**: Configuración inicial del sistema
   - Datos de la empresa
   - Configuraciones generales
 
 #### Configuración de Datos (src/pages/DataSetup.tsx)
-- **Lenguaje**: TypeScript/React
 - **Funcionalidad**: Configuración de almacenamiento
   - Gestión de datos
   - Configuración de archivos
 
 #### Configuración de Tablas (src/pages/TablesSetup.tsx)
-- **Lenguaje**: TypeScript/React
-- **Funcionalidad**: Gestión de clasificación de activos
-  - Configuración de categorías
-  - Gestión de tablas de activos
+- **Funcionalidad**: 
+  - Inicialización de la base de datos MongoDB
+  - Creación automática de colecciones
+  - Gestión de clasificación de activos
 
-### Componentes Reutilizables
+## Cómo ejecutar el proyecto
 
-#### StatCard (src/components/dashboard/StatCard.tsx)
-- **Lenguaje**: TypeScript/React
-- **Funcionalidad**: Tarjetas de estadísticas
-  - Muestra métricas individuales
-  - Iconos personalizables
-  - Descripción detallada
+1. **Requisitos previos**:
+   - Node.js y npm instalados
+   - MongoDB instalado localmente
+   - Python con FastAPI para el backend
 
-#### TaskList (src/components/dashboard/TaskList.tsx)
-- **Lenguaje**: TypeScript/React
-- **Funcionalidad**: Lista de tareas/órdenes
-  - Muestra órdenes pendientes
-  - Botón de ver detalles
-  - Información resumida
-
-#### StatisticsCard (src/components/dashboard/StatisticsCard.tsx)
-- **Lenguaje**: TypeScript/React
-- **Funcionalidad**: Gráficos estadísticos
-  - Datos semanales
-  - Datos mensuales
-  - Visualización mediante gráficos
-
-## Cómo editar este código
-
-Hay varias formas de editar tu aplicación.
-
-**Usar Lovable**
-
-Simplemente visita el [Proyecto Lovable](https://lovable.dev/projects/233766bc-08fb-4ecb-bc56-c8454a403561) y comienza a hacer prompts.
-
-Los cambios realizados a través de Lovable se confirmarán automáticamente en este repositorio.
-
-**Usar tu IDE preferido**
-
-Si deseas trabajar localmente usando tu propio IDE, puedes clonar este repositorio y enviar cambios. Los cambios enviados también se reflejarán en Lovable.
-
-El único requisito es tener Node.js y npm instalados - [instalar con nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Sigue estos pasos:
-
+2. **Instalación**:
 ```sh
-# Paso 1: Clona el repositorio usando la URL Git del proyecto.
-git clone <TU_URL_GIT>
+# Instalar dependencias
+npm install
 
-# Paso 2: Navega al directorio del proyecto.
-cd <NOMBRE_DE_TU_PROYECTO>
+# Iniciar en modo desarrollo
+npm run electron:dev
 
-# Paso 3: Instala las dependencias necesarias.
-npm i
-
-# Paso 4: Inicia el servidor de desarrollo con recarga automática y vista previa instantánea.
-npm run dev
+# Construir la aplicación
+npm run electron:build
 ```
 
-## Tecnologías utilizadas en este proyecto
+## Configuración Inicial
 
-Este proyecto está construido con:
+1. Configurar datos de la empresa en la sección "Configuración"
+2. Inicializar la base de datos desde "Configuración de Tablas"
+3. Verificar la creación correcta de las colecciones en MongoDB
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## Cómo desplegar este proyecto
-
-Simplemente abre [Lovable](https://lovable.dev/projects/233766bc-08fb-4ecb-bc56-c8454a403561) y haz clic en Compartir -> Publicar.
-
-## ¿Puedo usar un dominio personalizado?
-
-No admitimos dominios personalizados (aún). Si deseas implementar tu proyecto bajo tu propio dominio, te recomendamos usar Netlify. Visita nuestra documentación para más detalles: [Dominios personalizados](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Para más información, visita la [documentación oficial](https://docs.lovable.dev/).
