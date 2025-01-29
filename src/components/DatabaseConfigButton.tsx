@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Database, CheckCircle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
+
+declare global {
+  interface Window {
+    electron: {
+      openDirectory: () => Promise<string>;
+    };
+  }
+}
 
 export function DatabaseConfigButton() {
   const [isConfigured, setIsConfigured] = useState(false);
@@ -21,19 +29,15 @@ export function DatabaseConfigButton() {
         return;
       }
 
-      // Create directory dialog
-      const directoryHandle = await window.showDirectoryPicker({
-        startIn: 'desktop',
-      });
-
-      // Verify if we can create the mdigital directory
       try {
-        const mdigitalHandle = await directoryHandle.getDirectoryHandle('mdigital', {
-          create: true,
-        });
+        // Use Electron's dialog through our preload script
+        const selectedPath = await window.electron.openDirectory();
+        if (!selectedPath) {
+          return; // User cancelled the dialog
+        }
 
-        // Get the full path (this is a security-safe way to handle paths in modern web apps)
-        const dbPath = `${directoryHandle.name}/mdigital`;
+        // Construct the mdigital path
+        const dbPath = `${selectedPath}/mdigital`;
 
         // Update the empresas.json file in PythonAnywhere with the new disk location
         await axios.post('https://oaf.pythonanywhere.com/api/update-empresa', {
