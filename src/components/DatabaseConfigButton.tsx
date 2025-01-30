@@ -4,14 +4,6 @@ import { Database, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 
-declare global {
-  interface Window {
-    electron: {
-      openDirectory: () => Promise<string>;
-    };
-  }
-}
-
 export function DatabaseConfigButton() {
   const [isConfigured, setIsConfigured] = useState(false);
   const { toast } = useToast();
@@ -29,39 +21,40 @@ export function DatabaseConfigButton() {
         return;
       }
 
-      try {
-        // Use Electron's dialog through our preload script
-        const selectedPath = await window.electron.openDirectory();
-        if (!selectedPath) {
-          return; // User cancelled the dialog
-        }
+      const { disco } = JSON.parse(companyData);
+      
+      console.log("Iniciando configuración de base de datos");
+      
+      // Llamada al backend para crear el directorio y la base de datos
+      const response = await axios.post('https://oaf.pythonanywhere.com/api/initialize-database', {
+        path: disco,
+        collections: [
+          "otrabajo",
+          "por_tipo_de_activo",
+          "por_funcionalidad",
+          "por_importancia_critica",
+          "por_ubicacion",
+          "por_modo_de_mantenimiento_aplicable",
+          "por_ciclo_de_vida_del_activo"
+        ]
+      });
 
-        // Construct the mdigital path
-        const dbPath = `${selectedPath}/mdigital`;
+      console.log("Respuesta del servidor:", response.data);
 
-        // Update the empresas.json file in PythonAnywhere with the new disk location
-        await axios.post('https://oaf.pythonanywhere.com/api/update-empresa', {
-          disco: dbPath
-        });
-
+      if (response.data.success) {
         setIsConfigured(true);
         toast({
           title: "Base de datos configurada",
-          description: `Directorio creado en: ${dbPath}`,
+          description: `Base de datos inicializada correctamente en: ${disco}`,
         });
-      } catch (error) {
-        console.error('Error creating directory:', error);
-        toast({
-          title: "Error",
-          description: "No se pudo crear el directorio de la base de datos",
-          variant: "destructive",
-        });
+      } else {
+        throw new Error(response.data.message || "Error desconocido");
       }
     } catch (error) {
-      console.error('Error in database setup:', error);
+      console.error('Error en la configuración de la base de datos:', error);
       toast({
         title: "Error",
-        description: "Ocurrió un error al configurar la base de datos",
+        description: "No se pudo configurar la base de datos",
         variant: "destructive",
       });
     }
