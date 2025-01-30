@@ -23,6 +23,7 @@ async def initialize_database(request: dict):
 
         # Initialize MongoDB connection
         try:
+            # Conectar con MongoDB local
             client = pymongo.MongoClient("mongodb://localhost:27017/")
             print("MongoDB connection successful")
             

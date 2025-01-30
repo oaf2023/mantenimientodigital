@@ -26,7 +26,7 @@ export function DatabaseConfigButton() {
       console.log("Iniciando configuración de base de datos");
       
       // Llamada al backend para crear el directorio y la base de datos
-      const response = await axios.post('https://oaf.pythonanywhere.com/api/v1/initialize-database', {
+      const response = await axios.post('http://localhost:8000/api/v1/initialize-database', {
         path: disco,
         collections: [
           "otrabajo",
@@ -54,7 +54,7 @@ export function DatabaseConfigButton() {
       console.error('Error en la configuración de la base de datos:', error);
       toast({
         title: "Error",
-        description: "No se pudo configurar la base de datos",
+        description: "No se pudo configurar la base de datos. Verifique que MongoDB esté en ejecución.",
         variant: "destructive",
       });
     }
