@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { CompanyForm } from "@/components/setup/CompanyForm";
+import axios from "axios";
 
 interface CompanyData {
   name: string;
@@ -16,6 +17,7 @@ interface CompanyData {
   city: string;
   country: string;
   contactName: string;
+  disco?: string;
 }
 
 const Setup = () => {
@@ -33,17 +35,32 @@ const Setup = () => {
       province: "",
       city: "",
       country: "",
-      contactName: ""
+      contactName: "",
+      disco: ""
     };
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('companyData', JSON.stringify(companyData));
-    toast({
-      title: "Configuración guardada",
-      description: "Los datos de la empresa se han guardado correctamente",
-    });
+    try {
+      // Save to PythonAnywhere API
+      await axios.post('https://oaf.pythonanywhere.com/api/update-empresa', companyData);
+      
+      // Save to localStorage for local state management
+      localStorage.setItem('companyData', JSON.stringify(companyData));
+      
+      toast({
+        title: "Configuración guardada",
+        description: "Los datos de la empresa se han guardado correctamente",
+      });
+    } catch (error) {
+      console.error('Error saving company data:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron guardar los datos de la empresa",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

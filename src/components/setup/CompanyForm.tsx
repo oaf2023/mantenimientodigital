@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompanyLogo } from "./CompanyLogo";
+import { DatabaseConfigButton } from "../DatabaseConfigButton";
 
 interface CompanyData {
   name: string;
@@ -15,6 +16,7 @@ interface CompanyData {
   city: string;
   country: string;
   contactName: string;
+  disco?: string;
 }
 
 interface CompanyFormProps {
@@ -134,6 +136,11 @@ export function CompanyForm({ data, onChange }: CompanyFormProps) {
           value={data.email}
           onChange={(e) => handleChange('email', e.target.value)}
         />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Label>Configuración de Base de Datos</Label>
+        <DatabaseConfigButton />
       </div>
     </div>
   );
