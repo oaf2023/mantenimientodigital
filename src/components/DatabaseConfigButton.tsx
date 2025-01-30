@@ -26,7 +26,7 @@ export function DatabaseConfigButton() {
       console.log("Iniciando configuración de base de datos");
       
       // Llamada al backend para crear el directorio y la base de datos
-      const response = await axios.post('https://oaf.pythonanywhere.com/api/initialize-database', {
+      const response = await axios.post('https://oaf.pythonanywhere.com/api/v1/initialize-database', {
         path: disco,
         collections: [
           "otrabajo",
