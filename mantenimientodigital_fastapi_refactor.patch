@@ -1,0 +1,673 @@
+--- a/.env.example
++++ b/.env.example
+--- a/.env.example+++ b/.env.example@@ -0,0 +1,11 @@+
++# PostgreSQL
++POSTGRES_HOST=localhost
++POSTGRES_PORT=5432
++POSTGRES_DB=mantegral
++POSTGRES_USER=postgres
++POSTGRES_PASSWORD=postgres
++
++# Security
++JWT_SECRET_KEY=change_me
++CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","*"]
+--- a/backend/app/app.py
++++ b/backend/app/app.py
+--- a/backend/app/app.py+++ b/backend/app/app.py@@ -1,12 +1 @@-# backend/app.py
+-from flask import Flask
+-from .routes.auth_routes import auth_routes
+-
+-app = Flask(__name__)
+-app.config.from_object('backend.config.Config')
+-
+-# Registrar rutas
+-app.register_blueprint(auth_routes)
+-
+-if __name__ == '__main__':
+-    app.run(debug=True)
++# Obsoleto: Esta app Flask fue reemplazada por FastAPI en app/main.py
+--- a/backend/app/config.py
++++ b/backend/app/config.py
+--- a/backend/app/config.py+++ b/backend/app/config.py@@ -1,8 +1,33 @@-from decouple import config
+ 
+-MYSQL_USER = config("MYSQL_USER", default="oaf")
+-MYSQL_PASSWORD = config("MYSQL_PASSWORD", default="familia2024")
+-MYSQL_HOST = config("MYSQL_HOST", default="oaf.mysql.pythonanywhere-services.com")
+-MYSQL_DB = config("MYSQL_DB", default="mantenimientodigital")
++from pydantic_settings import BaseSettings
++from functools import lru_cache
+ 
+-DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"+class Settings(BaseSettings):
++    APP_NAME: str = "Mantenimiento Digital API"
++    API_V1_PREFIX: str = "/api/v1"
++    # Database
++    POSTGRES_HOST: str = "localhost"
++    POSTGRES_PORT: int = 5432
++    POSTGRES_DB: str = "mantegral"
++    POSTGRES_USER: str = "postgres"
++    POSTGRES_PASSWORD: str = "postgres"
++    # Security
++    JWT_SECRET_KEY: str = "change_me"
++    JWT_ALGORITHM: str = "HS256"
++    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 12  # 12 hours
++    CORS_ORIGINS: list[str] = ["*"]  # override in production
++
++    class Config:
++        env_file = ".env"
++        extra = "ignore"
++
++    @property
++    def DATABASE_URL(self) -> str:
++        return (
++            f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
++            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
++        )
++
++@lru_cache
++def get_settings() -> Settings:
++    return Settings()
+--- a/backend/app/databases.py
++++ b/backend/app/databases.py
+--- a/backend/app/databases.py+++ b/backend/app/databases.py@@ -1,15 +1,20 @@+
+ from sqlalchemy import create_engine
+-from sqlalchemy.ext.declarative import declarative_base
+-from sqlalchemy.orm import sessionmaker
+-from app.config import DATABASE_URL
++from sqlalchemy.orm import sessionmaker, DeclarativeBase
++from typing import Generator
++from app.config import get_settings
+ 
+-engine = create_engine(DATABASE_URL)
++settings = get_settings()
++
++engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+-Base = declarative_base()
+ 
+-def get_db():
++class Base(DeclarativeBase):
++    pass
++
++def get_db() -> Generator:
+     db = SessionLocal()
+     try:
+         yield db
+     finally:
+-        db.close()+        db.close()
+--- a/backend/app/dependencies.py
++++ b/backend/app/dependencies.py
+--- a/backend/app/dependencies.py+++ b/backend/app/dependencies.py@@ -0,0 +1,49 @@+
++from datetime import datetime, timedelta, timezone
++from typing import Annotated
++from jose import jwt, JWTError
++from fastapi import Depends, HTTPException, status
++from fastapi.security import OAuth2PasswordBearer
++from passlib.context import CryptContext
++from sqlalchemy.orm import Session
++
++from app.config import get_settings
++from app.databases import get_db
++from app.models.user import User, Empresa
++
++settings = get_settings()
++oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_PREFIX}/auth/login")
++pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
++
++def hash_password(password: str) -> str:
++    return pwd_context.hash(password)
++
++def verify_password(password: str, password_hash: str) -> bool:
++    return pwd_context.verify(password, password_hash)
++
++def create_access_token(data: dict, expires_minutes: int | None = None) -> str:
++    to_encode = data.copy()
++    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES)
++    to_encode.update({"exp": expire})
++    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
++
++def get_current_user(
++    token: Annotated[str, Depends(oauth2_scheme)],
++    db: Session = Depends(get_db)
++) -> User:
++    credentials_exception = HTTPException(
++        status_code=status.HTTP_401_UNAUTHORIZED,
++        detail="Could not validate credentials",
++        headers={"WWW-Authenticate": "Bearer"},
++    )
++    try:
++        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
++        user_id: int | None = payload.get("user_id")
++        if user_id is None:
++            raise credentials_exception
++    except JWTError:
++        raise credentials_exception
++    user = db.query(User).filter(User.id == user_id).first()
++    if not user:
++        raise credentials_exception
++    return user
+--- a/backend/app/main.py
++++ b/backend/app/main.py
+--- a/backend/app/main.py+++ b/backend/app/main.py@@ -1,21 +1,34 @@+
+ from fastapi import FastAPI
+-from app.routes import work_orders, database
+ from fastapi.middleware.cors import CORSMiddleware
++from sqlalchemy.orm import Session
+ 
+-app = FastAPI(title="Mantenimiento Digital")
++from app.config import get_settings
++from app.databases import Base, engine
++from app.routes import work_orders, auth_routes, dashboard
+ 
+-# Configurar CORS
++settings = get_settings()
++app = FastAPI(title=settings.APP_NAME, openapi_url=f"{settings.API_V1_PREFIX}/openapi.json")
++
++# CORS
+ app.add_middleware(
+     CORSMiddleware,
+-    allow_origins=["*"],  # En producción, especificar los orígenes permitidos
++    allow_origins=settings.CORS_ORIGINS,
+     allow_credentials=True,
+     allow_methods=["*"],
+     allow_headers=["*"],
+ )
+ 
+-app.include_router(work_orders.router, prefix="/api/v1")
+-app.include_router(database.router, prefix="/api/v1")
++# Create tables at startup (ok for dev)
++@app.on_event("startup")
++def on_startup():
++    Base.metadata.create_all(bind=engine)
++
++# Include routers
++app.include_router(auth_routes.router, prefix=settings.API_V1_PREFIX)
++app.include_router(work_orders.router, prefix=settings.API_V1_PREFIX)
++app.include_router(dashboard.router, prefix=settings.API_V1_PREFIX)
+ 
+ @app.get("/")
+-async def root():
+-    return {"message": "API de mantenimiento digital funcionando correctamente"}+def root():
++    return {"message": "API de mantenimiento digital funcionando correctamente"}
+--- a/backend/app/models/user.py
++++ b/backend/app/models/user.py
+--- a/backend/app/models/user.py+++ b/backend/app/models/user.py@@ -1,11 +1,19 @@-# backend/config.py
+-import os
+-from pymongo import MongoClient
+ 
+-class Config:
+-    SECRET_KEY = os.getenv('SECRET_KEY', 'tu_clave_secreta')
+-    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+-    DATABASE_NAME = 'mantenimientodigital'
++from sqlalchemy.orm import Mapped, mapped_column, relationship
++from sqlalchemy import String, Integer, ForeignKey, DateTime, func
++from app.databases import Base
+ 
+-client = MongoClient(Config.MONGO_URI)
+-db = client[Config.DATABASE_NAME]
++class Empresa(Base):
++    __tablename__ = "empresas"
++    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
++    nombre: Mapped[str] = mapped_column(String(200), nullable=False, unique=True)
++    created_at: Mapped["datetime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
++
++class User(Base):
++    __tablename__ = "users"
++    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
++    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), index=True)
++    name: Mapped[str] = mapped_column(String(100), nullable=False)
++    email: Mapped[str] = mapped_column(String(200), nullable=False, unique=True, index=True)
++    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
++    created_at: Mapped["datetime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
+--- a/backend/app/models/work_order.py
++++ b/backend/app/models/work_order.py
+--- a/backend/app/models/work_order.py+++ b/backend/app/models/work_order.py@@ -1,10 +1,14 @@-from pydantic import BaseModel
+-from typing import Optional
+-from datetime import datetime
+ 
+-class WorkOrder(BaseModel):
+-    id: Optional[str]
+-    title: str
+-    description: str
+-    status: str
+-    created_at: datetime = datetime.now()
++from sqlalchemy.orm import Mapped, mapped_column
++from sqlalchemy import String, Integer, DateTime, ForeignKey, func, Text
++from app.databases import Base
++
++class WorkOrder(Base):
++    __tablename__ = "work_orders"
++    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
++    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), index=True)
++    title: Mapped[str] = mapped_column(String(200), nullable=False)
++    description: Mapped[str] = mapped_column(Text, nullable=True)
++    status: Mapped[str] = mapped_column(String(50), default="open", index=True)
++    created_at: Mapped["datetime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
++    closed_at: Mapped["datetime | None"] = mapped_column(DateTime(timezone=True), nullable=True)
+--- a/backend/app/routes/auth_routes.py
++++ b/backend/app/routes/auth_routes.py
+--- a/backend/app/routes/auth_routes.py+++ b/backend/app/routes/auth_routes.py@@ -1,34 +1,19 @@-# backend/routes/auth_routes.py
+-from flask import Blueprint, request, jsonify
+-from ..services.auth_service import AuthService
+ 
+-auth_routes = Blueprint('auth_routes', __name__)
++from fastapi import APIRouter, Depends
++from sqlalchemy.orm import Session
++from app.schemas.oauth import UserCreate, UserLogin, Token
++from app.databases import get_db
++from app.services.auth_service import register_user, login_user
+ 
+-@auth_routes.route('/api/register', methods=['POST'])
+-def register():
+-    data = request.get_json()
+-    try:
+-        AuthService.register_user(data['name'], data['email'], data['password'])
+-        return jsonify({'message': 'Usuario registrado exitosamente'}), 201
+-    except ValueError as e:
+-        return jsonify({'error': str(e)}), 400
++router = APIRouter(prefix="/auth", tags=["auth"])
+ 
+-@auth_routes.route('/api/login', methods=['POST'])
+-def login():
+-    data = request.get_json()
+-    try:
+-        token = AuthService.login_user(data['email'], data['password'])
+-        return jsonify({'token': token}), 200
+-    except ValueError as e:
+-        return jsonify({'error': str(e)}), 401
++@router.post("/register", response_model=Token)
++def register(payload: UserCreate, db: Session = Depends(get_db)):
++    user = register_user(db, payload.empresa_nombre, payload.name, payload.email, payload.password)
++    access_token = login_user(db, payload.email, payload.password)
++    return Token(access_token=access_token)
+ 
+-@auth_routes.route('/api/protected', methods=['GET'])
+-def protected():
+-    token = request.headers.get('Authorization')
+-    if not token:
+-        return jsonify({'error': 'Token no proporcionado'}), 401
+-    try:
+-        decoded = AuthService.verify_token(token)
+-        return jsonify({'message': 'Acceso concedido', 'user': decoded['email']}), 200
+-    except ValueError as e:
+-        return jsonify({'error': str(e)}), 401
++@router.post("/login", response_model=Token)
++def login(payload: UserLogin, db: Session = Depends(get_db)):
++    access_token = login_user(db, payload.email, payload.password)
++    return Token(access_token=access_token)
+--- a/backend/app/routes/dashboard.py
++++ b/backend/app/routes/dashboard.py
+--- a/backend/app/routes/dashboard.py+++ b/backend/app/routes/dashboard.py@@ -1,77 +1,31 @@-from fastapi import APIRouter
+-from app.database import db
+ 
+-router = APIRouter()
++from fastapi import APIRouter, Depends
++from sqlalchemy.orm import Session
++from sqlalchemy import func
++from datetime import datetime, timedelta
+ 
+-@router.get("/dashboard")
+-async def obtener_dashboard():
+-    ordenes_activas = await db.otrabajo.count_documents({"estado_trabajo": "Activa"})
+-    completadas_hoy = await db.otrabajo.count_documents({"estado_trabajo": "Completada"})
+-    
+-    # Consulta para calcular tiempo medio de reparación
+-    tiempo_medio_reparacion_pipeline = [
+-        {"$match": {"estado_trabajo": "Completada"}},
+-        {"$project": {"tiempo_reparacion": {"$subtract": ["$fecha_finalizacion_real", "$fecha_inicio_real"]}}},
+-        {"$group": {"_id": None, "promedio": {"$avg": "$tiempo_reparacion"}}}
+-    ]
+-    resultado_tiempo = await db.otrabajo.aggregate(tiempo_medio_reparacion_pipeline).to_list(1)
+-    tiempo_medio_reparacion = resultado_tiempo[0]["promedio"] / 3600000 if resultado_tiempo else 0
++from app.databases import get_db
++from app.dependencies import get_current_user
++from app.models.user import User
++from app.models.work_order import WorkOrder
+ 
+-    # Datos de órdenes pendientes y equipos críticos
+-    ordenes_pendientes = await db.otrabajo.find({"estado_trabajo": "Pendiente"}).to_list(5)
+-    estado_mensual = [
+-        {"name": "Completadas", "value": 120},
+-        {"name": "Falta Repuestos", "value": 20},
+-        {"name": "Falta Tiempo", "value": 15},
+-        {"name": "Falta Personal", "value": 10},
+-    ]
++router = APIRouter(prefix="/dashboard", tags=["dashboard"])
++
++@router.get("")
++def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
++    empresa_id = current_user.empresa_id
++
++    total = db.query(func.count(WorkOrder.id)).filter(WorkOrder.empresa_id == empresa_id).scalar() or 0
++    activas = db.query(func.count(WorkOrder.id)).filter(WorkOrder.empresa_id == empresa_id, WorkOrder.status == "open").scalar() or 0
++    cerradas = db.query(func.count(WorkOrder.id)).filter(WorkOrder.empresa_id == empresa_id, WorkOrder.status.in_(["closed", "done"])).scalar() or 0
++
++    # órdenes creadas en últimos 7 días
++    seven_days_ago = datetime.utcnow() - timedelta(days=7)
++    ult7 = db.query(func.count(WorkOrder.id)).filter(WorkOrder.empresa_id == empresa_id, WorkOrder.created_at >= seven_days_ago).scalar() or 0
+ 
+     return {
+-        "ordenes_activas": ordenes_activas,
+-        "tiempo_medio_reparacion": round(tiempo_medio_reparacion, 2),
+-        "completadas_hoy": completadas_hoy,
+-        "costo_medio_reparacion": 2450,  # Puedes obtener esto de la DB si lo necesitas
+-        "personal_por_orden": 3.5,       # Puedes obtener esto de la DB si lo necesitas
+-        "ordenes_pendientes": ordenes_pendientes,
+-        "estado_mensual": estado_mensual
++        "total_ordenes": total,
++        "ordenes_activas": activas,
++        "ordenes_cerradas": cerradas,
++        "ultimos_7_dias": ult7,
+     }
+-"""
+-async def obtener_dashboard():
+-    ordenes_activas = await db.otrabajo.count_documents({"estado_trabajo": "Activa"})
+-    completadas_hoy = await db.otrabajo.count_documents({"estado_trabajo": "Completada"})
+-    tiempo_medio_reparacion = await calcular_tiempo_medio()
+-    costo_medio_reparacion = await calcular_costo_medio()
+-    personal_por_orden = await calcular_personal_promedio()
+-
+-    return {
+-        "ordenes_activas": ordenes_activas,
+-        "tiempo_medio_reparacion": round(tiempo_medio_reparacion, 2),
+-        "completadas_hoy": completadas_hoy,
+-        "costo_medio_reparacion": round(costo_medio_reparacion, 2),
+-        "personal_por_orden": round(personal_por_orden, 2),
+-    }
+-"""
+-async def calcular_tiempo_medio():
+-    pipeline = [
+-        {"$match": {"estado_trabajo": "Completada"}},
+-        {"$project": {"duracion": {"$subtract": ["$fecha_finalizacion_real", "$fecha_inicio_real"]}}},
+-        {"$group": {"_id": None, "promedio": {"$avg": "$duracion"}}}
+-    ]
+-    resultado = await db.otrabajo.aggregate(pipeline).to_list(1)
+-    return resultado[0]["promedio"] / 3600000 if resultado else 0  # Convertir milisegundos a horas
+-
+-async def calcular_costo_medio():
+-    pipeline = [
+-        {"$match": {"estado_trabajo": "Completada"}},
+-        {"$group": {"_id": None, "promedio": {"$avg": "$costo_total"}}}
+-    ]
+-    resultado = await db.otrabajo.aggregate(pipeline).to_list(1)
+-    return resultado[0]["promedio"] if resultado else 0
+-
+-async def calcular_personal_promedio():
+-    pipeline = [
+-        {"$match": {"estado_trabajo": "Completada"}},
+-        {"$group": {"_id": None, "promedio": {"$avg": "$personal_requerido"}}}
+-    ]
+-    resultado = await db.otrabajo.aggregate(pipeline).to_list(1)
+-    return resultado[0]["promedio"] if resultado else 0
+--- a/backend/app/routes/work_orders.py
++++ b/backend/app/routes/work_orders.py
+--- a/backend/app/routes/work_orders.py+++ b/backend/app/routes/work_orders.py@@ -1,11 +1,70 @@-from fastapi import APIRouter, HTTPException
+-from app.database import db
+-from app.models.work_order import WorkOrder
+ 
+-router = APIRouter()
++from fastapi import APIRouter, Depends, HTTPException, Query
++from sqlalchemy.orm import Session
++from typing import List
++from datetime import datetime
+ 
+-@router.post("/work-orders/", response_model=WorkOrder)
+-async def create_work_order(order: WorkOrder):
+-    new_order = await db.work_orders.insert_one(order.dict())
+-    created_order = await db.work_orders.find_one({"_id": new_order.inserted_id})
+-    return created_order
++from app.databases import get_db
++from app.models.work_order import WorkOrder as WorkOrderModel
++from app.schemas.work_order import WorkOrderCreate, WorkOrderUpdate, WorkOrderOut
++from app.dependencies import get_current_user
++from app.models.user import User
++
++router = APIRouter(prefix="/work-orders", tags=["work-orders"])
++
++@router.post("/", response_model=WorkOrderOut)
++def create(order: WorkOrderCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
++    wo = WorkOrderModel(empresa_id=current_user.empresa_id, **order.dict())
++    db.add(wo)
++    db.commit()
++    db.refresh(wo)
++    return wo
++
++@router.get("/", response_model=List[WorkOrderOut])
++def list_work_orders(
++    status: str | None = Query(None),
++    db: Session = Depends(get_db),
++    current_user: User = Depends(get_current_user)
++):
++    q = db.query(WorkOrderModel).filter(WorkOrderModel.empresa_id == current_user.empresa_id)
++    if status:
++        q = q.filter(WorkOrderModel.status == status)
++    return q.order_by(WorkOrderModel.created_at.desc()).all()
++
++@router.get("/{work_order_id}", response_model=WorkOrderOut)
++def get_work_order(work_order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
++    wo = db.query(WorkOrderModel).filter(
++        WorkOrderModel.id == work_order_id,
++        WorkOrderModel.empresa_id == current_user.empresa_id
++    ).first()
++    if not wo:
++        raise HTTPException(status_code=404, detail="Orden no encontrada")
++    return wo
++
++@router.put("/{work_order_id}", response_model=WorkOrderOut)
++def update_work_order(work_order_id: int, patch: WorkOrderUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
++    wo = db.query(WorkOrderModel).filter(
++        WorkOrderModel.id == work_order_id,
++        WorkOrderModel.empresa_id == current_user.empresa_id
++    ).first()
++    if not wo:
++        raise HTTPException(status_code=404, detail="Orden no encontrada")
++    for k, v in patch.dict(exclude_unset=True).items():
++        setattr(wo, k, v)
++    if patch.status and patch.status in {"closed", "done"}:
++        wo.closed_at = wo.closed_at or datetime.utcnow()
++    db.commit()
++    db.refresh(wo)
++    return wo
++
++@router.delete("/{work_order_id}")
++def delete_work_order(work_order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
++    wo = db.query(WorkOrderModel).filter(
++        WorkOrderModel.id == work_order_id,
++        WorkOrderModel.empresa_id == current_user.empresa_id
++    ).first()
++    if not wo:
++        raise HTTPException(status_code=404, detail="Orden no encontrada")
++    db.delete(wo)
++    db.commit()
++    return {"ok": True}
+--- a/backend/app/schemas/oauth.py
++++ b/backend/app/schemas/oauth.py
+--- a/backend/app/schemas/oauth.py+++ b/backend/app/schemas/oauth.py@@ -1,15 +1,21 @@-from fastapi import Depends, HTTPException
+-from fastapi.security import OAuth2PasswordBearer
+-from jose import JWTError, jwt
+ 
+-SECRET_KEY = "your_secret_key"
+-ALGORITHM = "HS256"
++from pydantic import BaseModel, EmailStr
+ 
+-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
++class Token(BaseModel):
++    access_token: str
++    token_type: str = "bearer"
+ 
+-def verify_token(token: str = Depends(oauth2_scheme)):
+-    try:
+-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+-        return payload
+-    except JWTError:
+-        raise HTTPException(status_code=401, detail="Token inválido")
++class TokenData(BaseModel):
++    user_id: int
++    empresa_id: int
++    email: EmailStr
++
++class UserCreate(BaseModel):
++    empresa_nombre: str
++    name: str
++    email: EmailStr
++    password: str
++
++class UserLogin(BaseModel):
++    email: EmailStr
++    password: str
+--- a/backend/app/schemas/work_order.py
++++ b/backend/app/schemas/work_order.py
+--- a/backend/app/schemas/work_order.py+++ b/backend/app/schemas/work_order.py@@ -0,0 +1,27 @@+
++from pydantic import BaseModel
++from typing import Optional
++from datetime import datetime
++
++class WorkOrderBase(BaseModel):
++    title: str
++    description: Optional[str] = None
++    status: str = "open"
++
++class WorkOrderCreate(WorkOrderBase):
++    pass
++
++class WorkOrderUpdate(BaseModel):
++    title: Optional[str] = None
++    description: Optional[str] = None
++    status: Optional[str] = None
++    closed_at: Optional[datetime] = None
++
++class WorkOrderOut(WorkOrderBase):
++    id: int
++    empresa_id: int
++    created_at: datetime
++    closed_at: Optional[datetime] = None
++
++    class Config:
++        from_attributes = True
+--- a/backend/app/services/auth_service.py
++++ b/backend/app/services/auth_service.py
+--- a/backend/app/services/auth_service.py+++ b/backend/app/services/auth_service.py@@ -1,33 +1,32 @@-# backend/services/auth_service.py
+-from datetime import datetime, timedelta
+-import jwt
+-from ..config import Config
+-from ..models.user import User
+ 
+-class AuthService:
+-    @staticmethod
+-    def register_user(name, email, password):
+-        if User.find_user_by_email(email):
+-            raise ValueError('El usuario ya existe')
+-        return User.create_user(name, email, password)
++from sqlalchemy.orm import Session
++from fastapi import HTTPException, status
++from app.models.user import User, Empresa
++from app.dependencies import hash_password, verify_password, create_access_token
+ 
+-    @staticmethod
+-    def login_user(email, password):
+-        user = User.find_user_by_email(email)
+-        if not user:
+-            raise ValueError('Usuario no encontrado')
+-        if not User.verify_password(user, password):
+-            raise ValueError('Contraseña incorrecta')
+-        return jwt.encode({
+-            'email': user['email'],
+-            'exp': datetime.utcnow() + timedelta(hours=1)
+-        }, Config.SECRET_KEY, algorithm='HS256')
++def register_user(db: Session, empresa_nombre: str, name: str, email: str, password: str) -> User:
++    empresa = db.query(Empresa).filter(Empresa.nombre == empresa_nombre).first()
++    if not empresa:
++        empresa = Empresa(nombre=empresa_nombre)
++        db.add(empresa)
++        db.flush()
+ 
+-    @staticmethod
+-    def verify_token(token):
+-        try:
+-            return jwt.decode(token, Config.SECRET_KEY, algorithms=['HS256'])
+-        except jwt.ExpiredSignatureError:
+-            raise ValueError('Token expirado')
+-        except jwt.InvalidTokenError:
+-            raise ValueError('Token inválido')
++    if db.query(User).filter(User.email == email).first():
++        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email ya registrado")
++    user = User(
++        empresa_id=empresa.id,
++        name=name,
++        email=email,
++        password_hash=hash_password(password)
++    )
++    db.add(user)
++    db.commit()
++    db.refresh(user)
++    return user
++
++def login_user(db: Session, email: str, password: str) -> str:
++    user = db.query(User).filter(User.email == email).first()
++    if not user or not verify_password(password, user.password_hash):
++        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
++    token = create_access_token({"user_id": user.id, "empresa_id": user.empresa_id, "email": user.email})
++    return token
+--- a/backend/config.py
++++ b/backend/config.py
+--- a/backend/config.py+++ b/backend/config.py@@ -1,11 +1,3 @@-# backend/config.py
+-import os
+-from pymongo import MongoClient
+ 
+-class Config:
+-    SECRET_KEY = os.getenv('SECRET_KEY', 'tu_clave_secreta')
+-    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+-    DATABASE_NAME = 'mantenimientodigital'
+-
+-client = MongoClient(Config.MONGO_URI)
+-db = client[Config.DATABASE_NAME]
++# Obsoleto: usar app/config.py para la configuración (PostgreSQL/JWT).
++# Se mantiene este archivo para evitar import errors en otros módulos legacy.
+--- a/backend/requirements.txt
++++ b/backend/requirements.txt
+--- a/backend/requirements.txt+++ b/backend/requirements.txt@@ -1,10 +1,9 @@-fastapi==0.104.1
+-uvicorn==0.24.0
+-python-decouple==3.8
+-pymysql==1.1.0
+-sqlalchemy==2.0.23
++
++fastapi==0.112.2
++uvicorn[standard]==0.30.6
++pydantic==2.9.0
++pydantic-settings==2.5.2
++SQLAlchemy==2.0.36
++psycopg2-binary==2.9.9
+ python-jose==3.3.0
+-python-multipart==0.0.6
+-pymongo==4.6.1
+-python-dotenv==1.0.0
+-requests==2.31.0+passlib[bcrypt]==1.7.4
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+--- a/src/pages/index.tsx+++ b/src/pages/index.tsx@@ -1,5 +1,7 @@ import { useEffect, useState } from "react";
+ import axios from "axios";
++const token = localStorage.getItem("token");
++if (token) { axios.defaults.headers.common["Authorization"] = `Bearer ${token}`; }
+ import { StatCard } from "@/components/dashboard/StatCard";
+ import { TaskList } from "@/components/dashboard/TaskList";
+ import { StatisticsCard } from "@/components/dashboard/StatisticsCard";
+--- a/src/services/api.ts
++++ b/src/services/api.ts
+--- a/src/services/api.ts+++ b/src/services/api.ts@@ -0,0 +1,19 @@+
++import axios from "axios";
++
++const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1";
++
++export const api = axios.create({
++  baseURL: API_BASE_URL,
++});
++
++api.interceptors.request.use((config) => {
++  const token = localStorage.getItem("token");
++  if (token) {
++    config.headers = config.headers || {};
++    config.headers["Authorization"] = `Bearer ${token}`;
++  }
++  return config;
++});
++
++export default api;
