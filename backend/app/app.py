@@ -2,11 +2,16 @@
 from flask import Flask
 from .routes.auth_routes import auth_routes
 
-app = Flask(__name__)
-app.config.from_object('backend.config.Config')
+# backend/app/app.py  (o main.py según uses)
+from fastapi import FastAPI
+from .routes import work_orders, failure_codes, dashboard  # asegurate que el paquete routes tenga __init__.py
 
-# Registrar rutas
-app.register_blueprint(auth_routes)
+app = FastAPI(title="ManteGral API")
 
-if __name__ == '__main__':
-    app.run(debug=True)
+app.include_router(work_orders.router)
+app.include_router(failure_codes.router)
+app.include_router(dashboard.router)
+
+
+
+

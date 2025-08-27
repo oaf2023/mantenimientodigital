@@ -1,7 +1,42 @@
 from fastapi import APIRouter
-from app.database import db
+from app.databases import db
 
 router = APIRouter()
+
+# backend/app/routes/dashboard.py
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
+from ..dependencies import get_empresa_id
+from ..databases import get_async_session
+from ..models.work_order import WorkOrder
+
+router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+
+@router.get("/kpis")
+async def kpis(
+    empresa_id: int = Depends(get_empresa_id),
+    db: AsyncSession = Depends(get_async_session),
+):
+    total = (await db.execute(
+        select(func.count()).select_from(WorkOrder).where(WorkOrder.empresa_id == empresa_id)
+    )).scalar_one()
+
+    cerradas = (await db.execute(
+        select(func.count()).select_from(WorkOrder).where(
+            WorkOrder.empresa_id == empresa_id, WorkOrder.status == "Closed")
+    )).scalar_one()
+
+    # Placeholder: MTBF/MTTR requieren tiempos/fallas por equipo. Dejamos 0 hasta tener datos.
+    return {
+        "total_ot": total,
+        "ot_cerradas": cerradas,
+        "mtbf_horas": 0,
+        "mttr_horas": 0,
+        "pm_on_time": 0,  # para sprint 2
+    }
+
+
 
 @router.get("/dashboard")
 async def obtener_dashboard():

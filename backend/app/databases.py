@@ -13,3 +13,18 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# backend/app/databases.py
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from fastapi import Depends
+
+# Ajustá la URL a la tuya (PostgreSQL, etc.)
+DATABASE_URL = "sqlite+aiosqlite:///./mantegral.db"
+
+engine = create_async_engine(DATABASE_URL, echo=False, future=True)
+SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
+async def get_async_session() -> AsyncSession:
+    async with SessionLocal() as session:
+        yield session
